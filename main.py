@@ -4,7 +4,6 @@ import os
 import sys
 import subprocess
 import shlex
-import re
 
 
 # Configure logging
@@ -86,8 +85,11 @@ def analyze_with_bandit(path, exclude):
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
+        # These tools exit non-zero precisely when they find something, and
+        # the findings live on stdout. Discarding stdout here turned every
+        # positive result into a bare "analysis failed" line.
         logging.error(f"Bandit analysis failed: {e}")
-        return f"Bandit analysis failed: {e}\n{e.stderr}"
+        return e.stdout or f"Bandit analysis failed: {e}\n{e.stderr}"
     except Exception as e:
         logging.error(f"Error running Bandit: {e}")
         return f"Error running Bandit: {e}"
@@ -105,7 +107,9 @@ def analyze_with_flake8(path, exclude):
     """
     try:
          # Flake8 uses --exclude differently, it's a single string with comma-separated patterns
-        command = ["flake8", path, "--extend-ignore=E722,B001,B028", "--select=E,W,F,C90", "--max-complexity=10"]
+        # E722 (bare except) stays selected below: ignoring it in a tool whose
+        # whole subject is improper exception handling silenced its main check.
+        command = ["flake8", path, "--extend-ignore=B028", "--select=E,W,F,C90", "--max-complexity=10"]
         exclude_list = [e.strip() for e in exclude.split(',') if e.strip()]
         if exclude_list:
             command.extend(["--exclude", ",".join(exclude_list)])
@@ -114,8 +118,11 @@ def analyze_with_flake8(path, exclude):
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
+        # These tools exit non-zero precisely when they find something, and
+        # the findings live on stdout. Discarding stdout here turned every
+        # positive result into a bare "analysis failed" line.
         logging.error(f"Flake8 analysis failed: {e}")
-        return f"Flake8 analysis failed: {e}\n{e.stderr}"
+        return e.stdout or f"Flake8 analysis failed: {e}\n{e.stderr}"
     except Exception as e:
         logging.error(f"Error running Flake8: {e}")
         return f"Error running Flake8: {e}"
@@ -133,7 +140,10 @@ def analyze_with_pylint(path, exclude):
     """
     try:
 
-        command = ["pylint", path, "--disable=C0301,W0703,W0702,broad-except"]
+        # W0702 and W0703 (bare and broad except) are the findings this tool
+        # exists to report, so they are not in the disable list; only the
+        # line length check is off, as it says nothing about exceptions.
+        command = ["pylint", path, "--disable=C0301"]
         exclude_list = [e.strip() for e in exclude.split(',') if e.strip()]
         if exclude_list:
             command.extend(["--ignore", ",".join(exclude_list)])
@@ -141,8 +151,11 @@ def analyze_with_pylint(path, exclude):
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
+        # These tools exit non-zero precisely when they find something, and
+        # the findings live on stdout. Discarding stdout here turned every
+        # positive result into a bare "analysis failed" line.
         logging.error(f"Pylint analysis failed: {e}")
-        return f"Pylint analysis failed: {e}\n{e.stderr}"
+        return e.stdout or f"Pylint analysis failed: {e}\n{e.stderr}"
     except Exception as e:
         logging.error(f"Error running Pylint: {e}")
         return f"Error running Pylint: {e}"
