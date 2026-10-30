@@ -1,3 +1,5 @@
+![Banner](banner.png)
+
 # codeintel-Improper-Exception-Handling-Checker
 Detects instances of empty 'except' blocks or generic exception handling that might mask underlying issues or security vulnerabilities, preventing proper error handling and potentially leading to unexpected behavior. - Focused on Tools for static code analysis, vulnerability scanning, and code quality assurance
 
