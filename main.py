@@ -89,10 +89,10 @@ def analyze_with_bandit(path, exclude):
         # the findings live on stdout. Discarding stdout here turned every
         # positive result into a bare "analysis failed" line.
         logging.error(f"Bandit analysis failed: {e}")
-        return e.stdout or f"Bandit analysis failed: {e}\n{e.stderr}"
+        return e.stdout if e.stdout else None
     except Exception as e:
         logging.error(f"Error running Bandit: {e}")
-        return f"Error running Bandit: {e}"
+        return None
 
 def analyze_with_flake8(path, exclude):
     """
@@ -122,10 +122,10 @@ def analyze_with_flake8(path, exclude):
         # the findings live on stdout. Discarding stdout here turned every
         # positive result into a bare "analysis failed" line.
         logging.error(f"Flake8 analysis failed: {e}")
-        return e.stdout or f"Flake8 analysis failed: {e}\n{e.stderr}"
+        return e.stdout if e.stdout else None
     except Exception as e:
         logging.error(f"Error running Flake8: {e}")
-        return f"Error running Flake8: {e}"
+        return None
 
 def analyze_with_pylint(path, exclude):
     """
@@ -155,10 +155,10 @@ def analyze_with_pylint(path, exclude):
         # the findings live on stdout. Discarding stdout here turned every
         # positive result into a bare "analysis failed" line.
         logging.error(f"Pylint analysis failed: {e}")
-        return e.stdout or f"Pylint analysis failed: {e}\n{e.stderr}"
+        return e.stdout if e.stdout else None
     except Exception as e:
         logging.error(f"Error running Pylint: {e}")
-        return f"Error running Pylint: {e}"
+        return None
 
 def analyze_with_pyre(path, exclude):
     """
@@ -180,13 +180,13 @@ def analyze_with_pyre(path, exclude):
         return result.stdout
     except subprocess.CalledProcessError as e:
         logging.error(f"Pyre analysis failed: {e}")
-        return f"Pyre analysis failed: {e}\n{e.stderr}"
+        return e.stdout if e.stdout else None
     except FileNotFoundError:
         logging.error("Pyre is not installed or not in PATH. Please install Pyre.")
-        return "Pyre is not installed or not in PATH. Please install Pyre."
+        return None
     except Exception as e:
         logging.error(f"Error running Pyre: {e}")
-        return f"Error running Pyre: {e}"
+        return None
 
 
 def main():
@@ -212,6 +212,10 @@ def main():
         analysis_results = analyze_with_pyre(args.path, args.exclude)
     else:
         logging.error(f"Invalid tool specified: {args.tool}")
+        sys.exit(1)
+
+    if analysis_results is None:
+        logging.error(f"Analysis failed: the chosen tool '{args.tool}' was missing or failed without producing output.")
         sys.exit(1)
 
     # Output the results
