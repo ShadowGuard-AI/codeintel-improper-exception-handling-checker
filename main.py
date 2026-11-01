@@ -174,6 +174,10 @@ def analyze_with_pyre(path, exclude):
     try:
         # Pyre configuration and command setup might be more complex
         # This is a simplified example, adapt it based on your specific needs and Pyre setup
+        # I pass the path to pyre analyze as an argument, unlike the
+        # project based way pyre check is used in my other tools. On a
+        # project that was never set up for pyre this is the branch
+        # most likely to return None and fail the run.
         command = ["pyre", "analyze", path]
         logging.info(f"Running Pyre with command: {' '.join(shlex.quote(arg) for arg in command)}")
         result = subprocess.run(command, capture_output=True, text=True, check=True)
@@ -203,6 +207,9 @@ def main():
     analysis_results = ""
     # Choose analysis tool
     if args.tool == 'bandit':
+        # I run exactly one tool per run, chosen by the flag. There is
+        # no combined mode, so a full picture takes four runs and the
+        # caller has to line the four outputs up by hand.
         analysis_results = analyze_with_bandit(args.path, args.exclude)
     elif args.tool == 'flake8':
         analysis_results = analyze_with_flake8(args.path, args.exclude)
@@ -214,6 +221,9 @@ def main():
         logging.error(f"Invalid tool specified: {args.tool}")
         sys.exit(1)
 
+    # I treat only None as failure. An empty string from a tool
+    # that ran clean prints as an empty report and exits 0, which
+    # is how a clean result and a silent tool look alike here.
     if analysis_results is None:
         logging.error(f"Analysis failed: the chosen tool '{args.tool}' was missing or failed without producing output.")
         sys.exit(1)
