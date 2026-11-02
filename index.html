@@ -3,164 +3,90 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Codeintel Improper Exception Handling Checker: what it is, how it runs, where it stops</title>
-<meta name="description" content="Codeintel Improper Exception Handling Checker is one of my projects. The README in the repo is short, so this page sticks to what the files themselves">
+<title>codeintel-improper-exception-handling-checker: One Tool per Run</title>
+<meta name="description" content="Detects instances of empty except blocks or generic exception handling. The program runs no exception check of its own and passes the target to one outside tool.">
 <style>
-:root {
-  --bg: #eee4d2; --panel: #f8f0e0; --ink: #4a1e22;
-  --mut: #ffffff;
-  --acc: #a83e36; --acc2: #406078;
-  --line: #f8f0e0;
-}
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink);
-  font-family: ' Gill Sans', 'Segoe UI', sans-serif; line-height: 1.55; }
-code, pre, .mono { font-family: 'SF Mono', monospace; }
-a { color: var(--acc2); }
-.hero { padding: 3rem 6vw 1rem; }
-.hero img.banner { width: 100%; height: auto; border: 1px solid var(--line);
-  border-radius: 10px; }
-.logo { width: 92px; height: 92px; border-radius: 18px;
-  border: 1px solid var(--line); }
-h1 { font-size: 2.4rem; margin: 0.4em 0 0.1em; }
-h2 { border-bottom: 2px solid var(--acc); padding-bottom: 0.2em;
-  margin-top: 2em; }
-.lede { font-size: 1.15rem; max-width: 62ch; }
-main { padding: 0 6vw 3rem; max-width: 1180px; margin: 0 auto; }
-.grid { display: grid; gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-.card { background: var(--panel); border: 1px solid var(--line);
-  border-radius: 12px; padding: 1rem 1.2rem; }
-.card.pop { animation: rise 0.7s ease both; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; } }
-pre.code { background: #101014; color: #e8e6df; padding: 1rem 1.2rem;
-  border-radius: 12px; overflow-x: auto; font-size: 0.86rem;
-  border-left: 5px solid var(--acc); }
-table { border-collapse: collapse; width: 100%; }
-td, th { border-bottom: 1px solid var(--line); padding: 0.45rem 0.6rem;
-  text-align: left; }
-.shots { display: grid; gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.shots img { width: 100%; height: auto; border: 1px solid var(--line);
-  border-radius: 10px; background: #f4f1e8; }
-footer { padding: 2rem 6vw; border-top: 1px solid var(--line);
-  color: var(--mut); }
-.rail { display: flex; gap: 1.2rem; align-items: flex-start; }
-.rail nav { position: sticky; top: 1rem; min-width: 180px; }
-@media (max-width: 760px) { .rail { flex-direction: column; }
-  .rail nav { position: static; } }
-@media (prefers-reduced-motion: reduce) {
-  .card.pop { animation: none; } * { scroll-behavior: auto; } }
+@font-face{font-family:'Belanosima';src:url('fonts/Belanosima.ttf') format('truetype');}
+@font-face{font-family:'Archivo';src:url('fonts/Archivo.ttf') format('truetype');}
+:root{--grey:#eef0f3;--violet:#54408c;--white:#f5f6f8;--copper:#b86e3c;--ink:#1e1c26}
+*{box-sizing:border-box}body{margin:0;background:var(--grey);color:var(--ink);font-family:'Archivo',sans-serif;line-height:1.6}
+h1,h2,h3{font-family:'Belanosima',sans-serif;color:var(--violet);font-weight:600}
+.hero img.heroimg{width:100%;height:52vh;object-fit:cover;display:block}
+.hero .in,main,footer{max-width:1120px;margin:0 auto;padding:1rem 6vw 2rem}.logo{width:230px;background:var(--white)}
+nav{display:flex;gap:1rem;flex-wrap:wrap;margin:1.2rem 0}
+.dial{text-align:center;text-decoration:none;color:var(--violet);font-family:'Belanosima',sans-serif}
+.dial .face{display:block;width:74px;height:74px;margin:0 auto .3rem;border:3px solid var(--violet);border-radius:50%;background:var(--white);position:relative}
+.dial .face::after{content:'';position:absolute;left:50%;top:50%;width:26px;height:3px;background:var(--copper);transform-origin:left center;transform:rotate(160deg)}
+.dial:hover .face::after{transform:rotate(90deg)}
+.dial:active .face{border-color:var(--copper)}
+.dial:focus-visible{outline:3px double var(--violet);outline-offset:3px}
+a{color:var(--violet)}a::before{content:'';display:inline-block;width:15px;height:11px;margin-right:.45em;border:2px solid var(--violet);border-bottom:none;border-radius:8px 8px 0 0;vertical-align:0}
+.dial::before{content:none}
+.case{background:var(--white);border:1px solid #b9bcc4;border-top:14px solid #d8dade;padding:.4rem 1.5rem 1.3rem;margin:1.8rem 0;position:relative}
+.case::before{content:'';position:absolute;top:-11px;left:50%;width:64px;height:8px;margin-left:-32px;border:2px solid #8f929c;border-bottom:none;border-radius:6px 6px 0 0}
+pre{background:#2c2745;color:var(--white);padding:1rem;overflow-x:auto}
+.road{height:16px;margin:1.4rem 0;background:#828791;position:relative}
+.road::after{content:'';position:absolute;left:0;right:0;top:6px;border-top:3px dashed var(--white)}
+.callout{background:#e6e8ec;border:1px solid var(--copper);padding:.2rem 1.3rem 1rem;margin:1.3rem 0}
+.entry{display:flex;gap:1rem;padding:.5rem 0;border-bottom:1px solid rgba(30,28,38,.16)}
+.entry b{font-family:'Belanosima',sans-serif;min-width:150px;font-size:1.08rem;color:var(--violet)}
+.fail{color:var(--copper);font-weight:700}
+.slot{border-top:2px dashed #8f929c;margin-top:1rem;padding-top:.5rem}
 </style>
 </head>
-<body class="layout-rail">
-<!-- This page exists for codeintel-improper-exception-handling-checker alone: the layout (sidebar-rail),
-     the colors, and the type were picked for this project, not
-     shared with the other project pages. The code block below is
-     copied from the file it names, line for line. If it looks
-     plain, that is because the project is plain, and I would
-     rather the page match the project than dress it up. The one
-     thing I will not do here is oversell: what this project does
-     not do is stated on the page, not hidden from it. -->
+<body>
 <header class="hero">
-  <img class="logo" src="assets/logo.png" alt="Codeintel Improper Exception Handling Checker logo">
-  <img class="banner" src="assets/banner.png" alt="">
-  <h1>Codeintel Improper Exception Handling Checker</h1>
-  <p class="mono"><a href="https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker">github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker</a></p>
+<img class="heroimg" src="assets/intro-banner.png" alt="The van from behind on a county road, rear doors open with the barometer and gauge in view, the road running straight toward a supercell, no lettering anywhere">
+<div class="in">
+<img class="logo" src="assets/logo.png" alt="One supercell cloud alone: flat anvil, rotating wall, dark rain foot, one thin copper line at the horizon, and the name below in thunderhead violet">
+<h1>codeintel-improper-exception-handling-checker</h1>
+<p>Chase log. The van has stopped in the path of the storm on purpose. One instrument runs at a time, and its result goes into the log.</p>
+<nav>
+<a class="dial" href="#run"><span class="face"></span>Run the Chosen Tool</a>
+<a class="dial" href="#params"><span class="face"></span>Save the Report</a>
+<a class="dial" href="#params"><span class="face"></span>Show Help</a>
+</nav>
+</div>
 </header>
-
 <main>
-  <section class="rail">
-    <nav aria-label="on this page">
-      <p class="mono"><a href="#run">Run it</a><br>
-      <a href="#files">The files</a><br>
-      <a href="#sheets">The sheets</a><br>
-      <a href="https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker">The repo</a></p>
-    </nav>
-    <div>
-      <p class="lede">Codeintel Improper Exception Handling Checker is one of my projects. The README in the repo is short, so this page sticks to what the files themselves show.</p>
-      <div class="grid">
-        <div class="card pop"><h3>What it is</h3>
-          <p>Codeintel Improper Exception Handling Checker: 5 files, 251 counted
-          lines across Python 231, Markdown 19, Text 1. One job, done in the
-          open, in files you can read.</p></div>
-        <div class="card pop"><h3>The biggest piece</h3>
-          <p><code>main.py</code> carries the most
-          lines. If the project grows, that file is where the growth
-          lands first, for better or worse.</p></div>
-        <div class="card pop"><h3>The honest gap</h3>
-          <p>No test files yet. That is the honest gap, and the roadmap in the visuals folder says what the first one should cover.</p></div>
-      </div>
-      <section id="run">
-        <h2>Run it</h2>
-        <p>The repo README has the exact commands for this one. The
-        shape is the shape for most of my projects: clone it, read the
-        top file first so you know what will happen, then run it on
-        something you do not mind breaking.</p>
-        <p class="mono">$ git clone https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker.git<br>$ cd codeintel-improper-exception-handling-checker</p>
-      </section>
-      
-  <section aria-label="real code">
-    <h2>The code, as it sits in the repo</h2>
-    <p>From <code>main.py</code>, line 11 on. I did
-    not tidy it for the page. What you see is what the file has.</p>
-    <pre class="code"><code>
-
-def setup_argparse():
-    &quot;&quot;&quot;
-    Sets up the argument parser for the command-line interface.
-    &quot;&quot;&quot;
-    parser = argparse.ArgumentParser(
-        description=&quot;Detects improper exception handling in Python code.&quot;,
-        formatter_class=argparse.RawTextHelpFormatter
-    )
-
-    parser.add_argument(
-        &quot;path&quot;,
-        help=&quot;Path to the Python file or directory to analyze.&quot;,
-        type=str
-    )
-
-    parser.add_argument(
-        &quot;--report_file&quot;,
-        help=&quot;Path to save the report (optional).  If not provided, output will be to stdout.&quot;,
-        type=str,
-        required=False</code></pre>
-  </section>
-      <section id="files">
-        <h2>The files that matter</h2>
-        <table><tr><th>File</th><th>Lines</th></tr>
-        <tr><td><code>main.py</code></td><td>231</td></tr>
-        <tr><td><code>README.md</code></td><td>19</td></tr>
-        <tr><td><code>requirements.txt</code></td><td>1</td></tr>
-        <tr><td><code>banner.png</code></td><td>0</td></tr>
-        <tr><td><code>logo.png</code></td><td>0</td></tr>
-        </table>
-        <p>Names doing the work: <span class="mono">setup_argparse, check_path, analyze_with_bandit, analyze_with_flake8, analyze_with_pylint, analyze_with_pyre, main</span>.</p>
-      </section>
-      <section id="sheets">
-        <h2>Drawn by hand</h2>
-        <p>I sketch my projects on notebook paper so I have to
-        understand them well enough to draw them. The full set,
-        with the counts and how they were counted, is the
-        <a href="https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker/tree/main/codeintel-improper-exception-handling-checker-Visuals">codeintel-improper-exception-handling-checker-Visuals</a>
-        folder in the repo. Nothing is drawn over the binder holes.
-        That is a rule, not a style.</p>
-        <div class="shots">
-          <img src="assets/architecture.png" alt="Hand drawn architecture sheet for Codeintel Improper Exception Handling Checker">
-          <img src="assets/flowchart.png" alt="Hand drawn flowchart sheet for Codeintel Improper Exception Handling Checker">
-          <img src="assets/product-map.png" alt="Hand drawn product map sheet for Codeintel Improper Exception Handling Checker">
-        </div>
-      </section>
-    </div>
-  </section>
+<section class="case"><h2>Empty Except and Broad Except</h2>
+<p>The README says the tool detects instances of empty except blocks or generic exception handling. Such handling might mask underlying issues or security vulnerabilities. It can prevent proper error handling and lead to unexpected behaviour.</p>
+<div class="callout"><h3>The Findings Come from the Chosen Tool</h3><p>Code fact, set in the same size as the panel above: the program runs no exception check of its own. It passes the target to one outside tool. The outside tool produces the findings.</p></div>
+</section>
+<div class="road"></div>
+<section class="case"><h2>Obtaining the Tool, as Printed</h2>
+<pre>git clone https://github.com/ShadowStrikeHQ/codeintel-improper-exception-handling-checker</pre>
+<div class="callout"><h3>Flagged in Place</h3><p>A copper note stands beside the line: the line names ShadowStrikeHQ and not ShadowGuard-AI. The line stays as printed. The README gives no further step, and this panel adds none.</p></div>
+</section>
+<div class="road"></div>
+<section class="case" id="run"><h2>Running the Tool, as Printed</h2>
+<pre>./codeintel-improper-exception-handling-checker [params]</pre>
+<div class="callout"><h3>The README Names No Path</h3><p>The line is a placeholder. It names no target path and no tool flag. Code note: the code requires a positional path. The path names a Python file or a directory.</p></div>
+</section>
+<div class="road"></div>
+<section class="case" id="params"><h2>The Parameters, Four in README Order</h2>
+<div class="entry"><b>-h</b><span>Shows a help message and exits.</span></div>
+<div class="entry"><b>--report_file</b><span>README: no description given. Code fact: the option gives a path for the report. Output goes to stdout when the option is absent.</span></div>
+<div class="entry"><b>--exclude</b><span>Gives a comma separated list of files or directories to exclude from analysis.</span></div>
+<div class="entry"><b>--tool</b><span>README: no description given. Code fact: the option chooses one tool from bandit, flake8, pylint, and pyre-check. The default is bandit.</span></div>
+<div class="slot">Stencil slot: two of the four entries carry no README description. The gap is recorded, not filled in the README wording.</div>
+</section>
+<div class="road"></div>
+<section class="case"><h2>One Tool per Run</h2>
+<p>One run uses one tool only. A full picture needs four separate runs, and the caller must line up the four outputs by hand. Bandit runs with recursive search and plain text output. Flake8 keeps the bare except check E722 in its selection. Pylint keeps the bare and broad except warnings W0702 and W0703 out of its disable list. Pyre runs as pyre analyze with the path as an argument.</p>
+<h2>A None Result Fails the Run</h2>
+<p class="fail">A result of None means failure and the run exits 1. A missing path also ends the run at 1.</p>
+<h2>An Empty Report Can Mean a Clean Run</h2>
+<p>An empty string means a clean tool run. An empty report then prints and the run exits 0.</p>
+<p><a href="https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker">The repository on GitHub</a></p>
+<h2>Licence, the Closing Entry</h2>
+<pre>Copyright (c) ShadowStrikeHQ</pre>
+<p>The licence line as printed, flagged beside the second panel. The README names no licence. This page invents no licence name.</p>
+</section>
 </main>
 <footer>
-  <p>Codeintel Improper Exception Handling Checker is one of my projects. This page was written
-  from the repo itself on 2026-10-30: the counts are the
-  repo's counts, the code is the repo's code, and the gaps are the
-  repo's gaps.</p>
+<img src="assets/banner.png" alt="A dented van on a county road facing a supercell, its side panel carrying the name in lightning white on thunderhead violet, the only words in the scene" style="width:100%">
+<p>codeintel-improper-exception-handling-checker. The storm has passed the van. The instruments are dry and packed. The log holds one tool result for the day.</p>
 </footer>
 </body>
 </html>
