@@ -3,90 +3,93 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>codeintel-improper-exception-handling-checker: One Tool per Run</title>
-<meta name="description" content="Detects instances of empty except blocks or generic exception handling. The program runs no exception check of its own and passes the target to one outside tool.">
+<title>codeintel-improper-exception-handling-checker: The Safety Net</title>
 <style>
-@font-face{font-family:'Belanosima';src:url('fonts/Belanosima.ttf') format('truetype');}
-@font-face{font-family:'Archivo';src:url('fonts/Archivo.ttf') format('truetype');}
-:root{--grey:#eef0f3;--violet:#54408c;--white:#f5f6f8;--copper:#b86e3c;--ink:#1e1c26}
-*{box-sizing:border-box}body{margin:0;background:var(--grey);color:var(--ink);font-family:'Archivo',sans-serif;line-height:1.6}
-h1,h2,h3{font-family:'Belanosima',sans-serif;color:var(--violet);font-weight:600}
-.hero img.heroimg{width:100%;height:52vh;object-fit:cover;display:block}
-.hero .in,main,footer{max-width:1120px;margin:0 auto;padding:1rem 6vw 2rem}.logo{width:230px;background:var(--white)}
-nav{display:flex;gap:1rem;flex-wrap:wrap;margin:1.2rem 0}
-.dial{text-align:center;text-decoration:none;color:var(--violet);font-family:'Belanosima',sans-serif}
-.dial .face{display:block;width:74px;height:74px;margin:0 auto .3rem;border:3px solid var(--violet);border-radius:50%;background:var(--white);position:relative}
-.dial .face::after{content:'';position:absolute;left:50%;top:50%;width:26px;height:3px;background:var(--copper);transform-origin:left center;transform:rotate(160deg)}
-.dial:hover .face::after{transform:rotate(90deg)}
-.dial:active .face{border-color:var(--copper)}
-.dial:focus-visible{outline:3px double var(--violet);outline-offset:3px}
-a{color:var(--violet)}a::before{content:'';display:inline-block;width:15px;height:11px;margin-right:.45em;border:2px solid var(--violet);border-bottom:none;border-radius:8px 8px 0 0;vertical-align:0}
-.dial::before{content:none}
-.case{background:var(--white);border:1px solid #b9bcc4;border-top:14px solid #d8dade;padding:.4rem 1.5rem 1.3rem;margin:1.8rem 0;position:relative}
-.case::before{content:'';position:absolute;top:-11px;left:50%;width:64px;height:8px;margin-left:-32px;border:2px solid #8f929c;border-bottom:none;border-radius:6px 6px 0 0}
-pre{background:#2c2745;color:var(--white);padding:1rem;overflow-x:auto}
-.road{height:16px;margin:1.4rem 0;background:#828791;position:relative}
-.road::after{content:'';position:absolute;left:0;right:0;top:6px;border-top:3px dashed var(--white)}
-.callout{background:#e6e8ec;border:1px solid var(--copper);padding:.2rem 1.3rem 1rem;margin:1.3rem 0}
-.entry{display:flex;gap:1rem;padding:.5rem 0;border-bottom:1px solid rgba(30,28,38,.16)}
-.entry b{font-family:'Belanosima',sans-serif;min-width:150px;font-size:1.08rem;color:var(--violet)}
-.fail{color:var(--copper);font-weight:700}
-.slot{border-top:2px dashed #8f929c;margin-top:1rem;padding-top:.5rem}
+@font-face { font-family: "Ribeye Marrow"; src: url("fonts/RibeyeMarrow-400.woff2") format("woff2"); font-weight: 400; }
+@font-face { font-family: "Kosugi"; src: url("fonts/Kosugi-400.woff2") format("woff2"); font-weight: 400; }
+:root {
+  --paper: #faf5ea; --cream: #f0e6cf; --ink: #2c241a; --soft: #6d5c46;
+  --accent: #a31621; --deep: #8a6d1f; --line: #ddcfa9; --card: #ffffff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: "Kosugi", sans-serif; line-height: 1.55; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 20px 64px; }
+header.hero { text-align: center; padding: 52px 0 8px; }
+img.hero-logo { width: min(430px, 82vw); border-radius: 10px; box-shadow: 0 10px 34px rgba(70,50,16,.22); }
+h1, h2 { font-family: "Ribeye Marrow", sans-serif; line-height: 1.15; font-weight: 400; }
+h1 { font-size: clamp(26px, 5vw, 44px); margin: 26px 0 6px; }
+.tagline { color: var(--soft); font-size: 19px; margin: 0 auto; max-width: 680px; }
+.btns { margin: 22px 0 6px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+a.btn { font-family: "Ribeye Marrow", sans-serif; text-decoration: none; padding: 11px 22px; border-radius: 999px; border: 2px solid var(--accent); color: var(--accent); background: transparent; }
+a.btn.solid { background: var(--deep); border-color: var(--deep); color: #fff; }
+figure { margin: 30px 0; }
+figure img { width: 100%; border-radius: 10px; display: block; box-shadow: 0 8px 28px rgba(70,50,16,.22); }
+figcaption { color: var(--soft); font-size: 15px; text-align: center; margin-top: 9px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 34px 0; }
+.fact { background: var(--card); border: 1px solid var(--line); border-top: 5px solid var(--accent); border-radius: 8px; padding: 14px 16px; }
+.fact b { display: block; font-family: "Ribeye Marrow", sans-serif; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+section { margin: 38px 0; }
+h2 { font-size: 27px; margin: 0 0 12px; border-bottom: 2px solid var(--line); padding-bottom: 7px; }
+code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+pre { background: #2a2114; color: #f4ecd8; padding: 15px 18px; border-radius: 8px; overflow-x: auto; font-size: 14.5px; }
+table { border-collapse: collapse; width: 100%; background: var(--card); }
+th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+th { font-family: "Ribeye Marrow", sans-serif; background: var(--cream); }
+.hold { background: #faf0da; border: 1px solid #e6d2a0; border-left: 6px solid var(--accent); border-radius: 8px; padding: 16px 20px; }
+.hold h2 { border: none; padding: 0; }
+.hold ul { margin: 8px 0 4px; padding-left: 20px; }
+footer { margin-top: 52px; border-top: 2px solid var(--line); padding-top: 16px; color: var(--soft); font-size: 14.5px; text-align: center; }
 </style>
 </head>
 <body>
+<div class="wrap">
 <header class="hero">
-<img class="heroimg" src="assets/intro-banner.png" alt="The van from behind on a county road, rear doors open with the barometer and gauge in view, the road running straight toward a supercell, no lettering anywhere">
-<div class="in">
-<img class="logo" src="assets/logo.png" alt="One supercell cloud alone: flat anvil, rotating wall, dark rain foot, one thin copper line at the horizon, and the name below in thunderhead violet">
-<h1>codeintel-improper-exception-handling-checker</h1>
-<p>Chase log. The van has stopped in the path of the storm on purpose. One instrument runs at a time, and its result goes into the log.</p>
-<nav>
-<a class="dial" href="#run"><span class="face"></span>Run the Chosen Tool</a>
-<a class="dial" href="#params"><span class="face"></span>Save the Report</a>
-<a class="dial" href="#params"><span class="face"></span>Show Help</a>
-</nav>
-</div>
+  <img class="hero-logo" src="assets/logo.png" alt="One wide safety net strung low and taut seen from above its edge, its rope grid and rim springs clear against the sawdust ring below">
+  <h1>codeintel-improper-exception-handling-checker</h1>
+  <p class="tagline">The Safety Net. An improper exception handling checker that reports on a Python file or directory through exactly one external analyzer per run, the one its flag chooses.</p>
+  <div class="btns">
+    <a class="btn solid" href="https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker">The repository</a>
+    <a class="btn" href="https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker/blob/main/main.py">main.py</a>
+  </div>
 </header>
-<main>
-<section class="case"><h2>Empty Except and Broad Except</h2>
-<p>The README says the tool detects instances of empty except blocks or generic exception handling. Such handling might mask underlying issues or security vulnerabilities. It can prevent proper error handling and lead to unexpected behaviour.</p>
-<div class="callout"><h3>The Findings Come from the Chosen Tool</h3><p>Code fact, set in the same size as the panel above: the program runs no exception check of its own. It passes the target to one outside tool. The outside tool produces the findings.</p></div>
+
+<div class="facts">
+  <div class="fact"><b>One tool per run</b>--tool chooses among bandit, flake8, pylint, and pyre-check, defaulting to bandit; a full picture takes four runs lined up by hand</div>
+  <div class="fact"><b>The subject lives in the flags</b>Flake8 runs with bare except E722 deliberately left selected; pylint disables only the line length check, so its bare and broad except warnings stay live</div>
+  <div class="fact"><b>Findings kept</b>A tool’s non zero exit keeps the findings on its stdout rather than discarding them</div>
+  <div class="fact"><b>Empty is clean</b>Only a result of None counts as failure and exits 1; an empty string is a clean run, prints an empty report, and exits 0</div>
+</div>
+<section>
+  <h2>Usage</h2>
+  <pre>python3 main.py PATH [--tool bandit] [--exclude a,b] [--report_file FILE]</pre>
+  <p>The README usage line is a placeholder naming neither path nor tool flag; the real invocation is the one above. Bandit runs its stock recursive text check, and pyre is invoked as pyre analyze on the path, the branch likeliest to fail on a project never set up for it. The --exclude list is comma separated and spelled per tool.</p>
+<table>
+    <tr><th>Option</th><th>What it does</th></tr>
+    <tr><td><code>path</code></td><td>The file or directory to examine. Required. The README parameter list omits it; the code requires it.</td></tr>
+    <tr><td><code>--tool</code></td><td>The one analyzer for this run: bandit, flake8, pylint, or pyre-check. Default bandit. The README list gives this No description provided; the help text in main.py describes it and gives the default.</td></tr>
+    <tr><td><code>--exclude</code></td><td>A comma separated list of files or directories to leave out, spelled per tool.</td></tr>
+    <tr><td><code>--report_file</code></td><td>Save the report to a file in place of stdout.</td></tr>
+  </table>
 </section>
-<div class="road"></div>
-<section class="case"><h2>Obtaining the Tool, as Printed</h2>
-<pre>git clone https://github.com/ShadowStrikeHQ/codeintel-improper-exception-handling-checker</pre>
-<div class="callout"><h3>Flagged in Place</h3><p>A copper note stands beside the line: the line names ShadowStrikeHQ and not ShadowGuard-AI. The line stays as printed. The README gives no further step, and this panel adds none.</p></div>
+<figure>
+  <img src="assets/banner.png" alt="Two riggers walking the edge of a strung safety net in an empty big top, one kneeling to test a rim spring while the trapeze hangs high and still above the net">
+  <figcaption>The net walked and tested before anything is allowed to fall.</figcaption>
+</figure>
+<section class="hold">
+  <h2>Judged before it is needed</h2>
+  <ul>
+    <li>The exception handling subject lives in the invocations rather than in any check of the tool’s own: the tool reports what its one chosen analyzer reports.</li>
+    <li>Because only one analyzer runs per run, a single quiet report means one instrument found nothing; the other three have not been asked.</li>
+    <li>A clean run and a silent tool come to look alike: an empty string prints as an empty report and exits 0, and only a result of None is treated as failure.</li>
+  </ul>
 </section>
-<div class="road"></div>
-<section class="case" id="run"><h2>Running the Tool, as Printed</h2>
-<pre>./codeintel-improper-exception-handling-checker [params]</pre>
-<div class="callout"><h3>The README Names No Path</h3><p>The line is a placeholder. It names no target path and no tool flag. Code note: the code requires a positional path. The path names a Python file or a directory.</p></div>
+<section>
+  <h2>Requirements</h2>
+  <p>Python, plus the four external analyzers listed in the requirements file (bandit, flake8, pylint, and pyre-check, each 1.0.0 or later), each invoked when selected with --tool.</p>
 </section>
-<div class="road"></div>
-<section class="case" id="params"><h2>The Parameters, Four in README Order</h2>
-<div class="entry"><b>-h</b><span>Shows a help message and exits.</span></div>
-<div class="entry"><b>--report_file</b><span>README: no description given. Code fact: the option gives a path for the report. Output goes to stdout when the option is absent.</span></div>
-<div class="entry"><b>--exclude</b><span>Gives a comma separated list of files or directories to exclude from analysis.</span></div>
-<div class="entry"><b>--tool</b><span>README: no description given. Code fact: the option chooses one tool from bandit, flake8, pylint, and pyre-check. The default is bandit.</span></div>
-<div class="slot">Stencil slot: two of the four entries carry no README description. The gap is recorded, not filled in the README wording.</div>
-</section>
-<div class="road"></div>
-<section class="case"><h2>One Tool per Run</h2>
-<p>One run uses one tool only. A full picture needs four separate runs, and the caller must line up the four outputs by hand. Bandit runs with recursive search and plain text output. Flake8 keeps the bare except check E722 in its selection. Pylint keeps the bare and broad except warnings W0702 and W0703 out of its disable list. Pyre runs as pyre analyze with the path as an argument.</p>
-<h2>A None Result Fails the Run</h2>
-<p class="fail">A result of None means failure and the run exits 1. A missing path also ends the run at 1.</p>
-<h2>An Empty Report Can Mean a Clean Run</h2>
-<p>An empty string means a clean tool run. An empty report then prints and the run exits 0.</p>
-<p><a href="https://github.com/ShadowGuard-AI/codeintel-improper-exception-handling-checker">The repository on GitHub</a></p>
-<h2>Licence, the Closing Entry</h2>
-<pre>Copyright (c) ShadowStrikeHQ</pre>
-<p>The licence line as printed, flagged beside the second panel. The README names no licence. This page invents no licence name.</p>
-</section>
-</main>
 <footer>
-<img src="assets/banner.png" alt="A dented van on a county road facing a supercell, its side panel carrying the name in lightning white on thunderhead violet, the only words in the scene" style="width:100%">
-<p>codeintel-improper-exception-handling-checker. The storm has passed the van. The instruments are dry and packed. The log holds one tool result for the day.</p>
+<p>The README of codeintel-improper-exception-handling-checker names the stale ShadowStrikeHQ org in its clone URL and closes with a copyright line naming the same org; the repository carries a separate LICENSE file headed MIT License. Both are preserved exactly as printed. Site type is set in Ribeye Marrow, self-hosted under the SIL Open Font License, and Kosugi, self-hosted under the Apache License 2.0.</p>
 </footer>
+</div>
 </body>
 </html>
