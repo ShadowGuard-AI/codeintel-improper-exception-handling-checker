@@ -1,3 +1,5 @@
+![A rigger kneeling at the rim of the strung net with both gloved hands gripping one rim spring, testing its give, the rope grid running away soft behind him and the trapeze hanging still above the sawdust ring](intro-banner.png)
+
 
 # codeintel-Improper-Exception-Handling-Checker
 
